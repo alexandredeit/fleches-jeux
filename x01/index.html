@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>X01 fléchettes</title>
+<meta name="description" content="X01 à fléchettes : partir de 301, 501 ou 701 et finir à zéro.">
+<meta name="theme-color" content="#0E1512">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<noscript><p class="noscript">Cette page a besoin de JavaScript pour fonctionner.</p></noscript>
+
+<main>
+  <header class="top">
+    <h1 class="brand">X01 <span>fléchettes</span></h1>
+    <div class="bar"><a class="btn ghost" href="../">Jeux</a><button class="btn ghost" id="menu" hidden>Réglages</button></div>
+  </header>
+
+  <section id="lsetup" class="card" data-screen="lsetup" hidden>
+    <h2 class="sect">X01</h2>
+    <p>Chacun part du même score et retire ce qu'il marque à chaque tour de 3 fléchettes. Le premier qui arrive à exactement zéro gagne.</p>
+    <div class="field">
+      <span class="flabel">Score de départ</span>
+      <div class="chips" id="xchips">
+        <button data-v="301" aria-pressed="false">301</button>
+        <button data-v="501" aria-pressed="true">501</button>
+        <button data-v="701" aria-pressed="false">701</button>
+      </div>
+    </div>
+    <button class="toggle" id="xdouble" aria-pressed="true">
+      <span><b>Double pour finir</b><small>Il faut terminer sur un double ou sur la bulle</small></span>
+      <span class="sw" aria-hidden="true"></span>
+    </button>
+    <div class="field">
+      <span class="flabel">Joueurs</span>
+      <div class="plist" id="plist"></div>
+      <button class="btn ghost" id="addP">+ Ajouter un joueur</button>
+    </div>
+    <button class="btn" id="xresume" hidden>Reprendre la partie en cours</button>
+    <button class="btn primary" id="xstartBtn">Commencer</button>
+  </section>
+
+  <section id="xgame" data-screen="xgame" hidden>
+    <div class="status"><div class="turn" id="xmode"></div></div>
+
+    <div class="players" id="xplayers"></div>
+
+    <div class="card">
+      <div class="status">
+        <div class="curname" id="xcur"></div>
+        <div id="xrem"></div>
+      </div>
+      <p class="note" id="xhint"></p>
+      <div class="slots" id="xslots"></div>
+    </div>
+
+    <div class="info" id="xinfo" aria-live="polite"></div>
+
+    <div class="mult" id="xmult" role="group" aria-label="Type de fléchette">
+      <button data-m="1" aria-pressed="true">Simple</button>
+      <button data-m="2" aria-pressed="false">Double</button>
+      <button data-m="3" aria-pressed="false">Triple</button>
+    </div>
+
+    <div class="keypad" id="xkeys"></div>
+
+    <div class="actions two">
+      <button class="btn" id="xundo">Annuler</button>
+      <button class="btn" id="xpass">Fin du tour</button>
+    </div>
+
+    <section class="card end" id="xend" hidden>
+      <h2 id="xtitle"></h2>
+      <p id="xtext"></p>
+      <div class="row2">
+        <button class="btn primary" id="xagain">Rejouer</button>
+        <button class="btn" id="xchange">Joueurs</button>
+      </div>
+    </section>
+  </section>
+
+  <div class="toast" id="toast" hidden></div>
+</main>
+<script>
+const KEY = 'x01-v1';
+</script>
+<script src="../assets/common.js"></script>
+<script src="../js/x01.js"></script>
+</body>
+</html>

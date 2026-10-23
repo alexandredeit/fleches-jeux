@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Battle royale fléchettes</title>
+<meta name="description" content="Battle royale à fléchettes : le total le plus bas de chaque manche perd une vie.">
+<meta name="theme-color" content="#0E1512">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<noscript><p class="noscript">Cette page a besoin de JavaScript pour fonctionner.</p></noscript>
+
+<main>
+  <header class="top">
+    <h1 class="brand" id="gbrand"></h1>
+    <div class="bar"><a class="btn ghost" href="../">Jeux</a><button class="btn ghost" id="menu" hidden>Réglages</button></div>
+  </header>
+
+  <section id="lsetup" class="card" data-screen="lsetup" hidden>
+    <h2 class="sect" id="lsetupTitle"></h2>
+    <p id="lrule"></p>
+    <div class="field">
+      <span class="flabel">Joueurs</span>
+      <div class="plist" id="plist"></div>
+      <button class="btn ghost" id="addP">+ Ajouter un joueur</button>
+    </div>
+    <div class="field">
+      <span class="flabel">Vies par joueur</span>
+      <div class="stepper">
+        <button class="btn" id="livesDec" aria-label="Moins de vies">−</button>
+        <output id="livesOut" aria-live="polite">5</output>
+        <button class="btn" id="livesInc" aria-label="Plus de vies">+</button>
+      </div>
+      <p class="hint" id="livesHint"></p>
+    </div>
+    <button class="btn" id="lresume" hidden>Reprendre la partie en cours</button>
+    <button class="btn primary" id="lstart">Commencer</button>
+  </section>
+
+  <section id="lives" data-screen="lives" hidden>
+    <div class="status"><div class="turn" id="lmode"></div></div>
+
+    <div class="players" id="lplayers"></div>
+    <p class="note" id="ltarget"></p>
+
+    <div class="card">
+      <div class="status">
+        <div class="curname" id="lcur"></div>
+        <div class="count" id="lsum"></div>
+      </div>
+      <div class="slots" id="lslots"></div>
+    </div>
+
+    <div class="info" id="linfo" aria-live="polite"></div>
+
+    <div class="mult" id="lmult" role="group" aria-label="Type de fléchette">
+      <button data-m="1" aria-pressed="true">Simple</button>
+      <button data-m="2" aria-pressed="false">Double</button>
+      <button data-m="3" aria-pressed="false">Triple</button>
+    </div>
+
+    <div class="keypad" id="keys"></div>
+
+    <div class="actions two">
+      <button class="btn" id="lundo">Annuler</button>
+      <button class="btn primary" id="lvalid">Valider</button>
+    </div>
+
+    <section class="card end" id="lend" hidden>
+      <h2 id="ltitle"></h2>
+      <div class="srows" id="lrows"></div>
+      <p id="ltext"></p>
+      <div class="row2">
+        <button class="btn primary" id="lnext" hidden>Manche suivante</button>
+        <button class="btn primary" id="lagain" hidden>Rejouer</button>
+        <button class="btn" id="lchange" hidden>Changer</button>
+      </div>
+    </section>
+  </section>
+
+  <div class="toast" id="toast" hidden></div>
+</main>
+<script>
+const KEY = 'battle-royale-v1';
+const GAME_MODE = 'battle';
+const GAME_LABEL = 'Battle royale';
+</script>
+<script src="../assets/common.js"></script>
+<script src="../js/lives.js"></script>
+</body>
+</html>

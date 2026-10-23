@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Morpion fléchettes</title>
+<meta name="description" content="Morpion à fléchettes : quatre touches sur une case pour la gagner.">
+<meta name="theme-color" content="#0E1512">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<noscript><p class="noscript">Cette page a besoin de JavaScript pour fonctionner.</p></noscript>
+
+<main>
+  <header class="top">
+    <h1 class="brand">Morpion <span>fléchettes</span></h1>
+    <div class="bar"><a class="btn ghost" href="../">Jeux</a><button class="btn ghost" id="menu" hidden>Réglages</button></div>
+  </header>
+
+  <section id="msetup" class="card" data-screen="msetup" hidden>
+    <div class="field ra">
+      <label for="nameA">Équipe rouge</label>
+      <input id="nameA" maxlength="18" value="Rouge" autocomplete="off">
+    </div>
+    <div class="field rb">
+      <label for="nameB">Équipe verte</label>
+      <input id="nameB" maxlength="18" value="Verte" autocomplete="off">
+    </div>
+    <button class="toggle" id="bullBtn" aria-pressed="false">
+      <span><b>Inclure la bulle</b><small>Une case devient BULLE, une seule fois</small></span>
+      <span class="sw" aria-hidden="true"></span>
+    </button>
+    <p>Pendant son tour, une équipe lance autant de fléchettes qu'elle veut, puis ferme son tour avec « Fin du tour ». Une case se gagne avec 4 touches : une fléchette en double compte pour 2, en triple pour 3. Trois cases alignées font gagner la partie.</p>
+    <button class="btn" id="mresume" hidden>Reprendre la partie en cours</button>
+    <button class="btn primary" id="start">Commencer</button>
+  </section>
+
+  <section id="game" data-screen="game" hidden>
+    <div class="scores">
+      <div class="team" data-t="0">
+        <div class="tname"></div>
+        <div class="tnums">
+          <span><b class="w">0</b>cases</span>
+          <span><b class="h">0</b>touches</span>
+        </div>
+      </div>
+      <div class="team" data-t="1">
+        <div class="tname"></div>
+        <div class="tnums">
+          <span><b class="w">0</b>cases</span>
+          <span><b class="h">0</b>touches</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="status">
+      <div class="turn" id="turn" aria-live="polite"></div>
+      <div class="count" id="count"></div>
+    </div>
+
+    <div class="mult" id="mult" role="group" aria-label="Type de fléchette">
+      <button data-m="1" aria-pressed="true">Simple</button>
+      <button data-m="2" aria-pressed="false">Double</button>
+      <button data-m="3" aria-pressed="false">Triple</button>
+    </div>
+
+    <div class="board" id="board"></div>
+
+    <div class="actions">
+      <button class="btn" id="miss">Raté</button>
+      <button class="btn" id="pass">Fin du tour</button>
+      <button class="btn" id="undo">Annuler</button>
+    </div>
+
+    <section class="card end" id="end" hidden>
+      <h2 id="endTitle"></h2>
+      <p id="endText"></p>
+      <div class="row2">
+        <button class="btn primary" id="again">Rejouer</button>
+        <button class="btn" id="change">Équipes</button>
+      </div>
+    </section>
+  </section>
+
+  <div class="toast" id="toast" hidden></div>
+</main>
+<script>
+const KEY = 'morpion-v1';
+</script>
+<script src="../assets/common.js"></script>
+<script src="../js/morpion.js"></script>
+</body>
+</html>
