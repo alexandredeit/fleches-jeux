@@ -1,6 +1,6 @@
 /* ----- Vies : battle royale ou classique (selon GAME_MODE) ----- */
 
-$('gbrand').innerHTML = `${esc(GAME_LABEL)} <span>fléchettes</span>`;
+$('gbrand').innerHTML = `${esc(GAME_LABEL)} <img class="logo" src="../assets/logo.png" alt="Chicodart">`;
 
 // Clavier : 1 à 20, Raté, Bull (25) et Bulle (50)
 $('keys').innerHTML =
