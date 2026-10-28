@@ -118,11 +118,6 @@ function crDart(v) {
     if (pts) msg += cr.mode === 'cutthroat' ? ` · +${pts} aux adversaires` : ` · +${pts} pts`;
   }
   checkCricketWin();
-  if (cr.winner === null && cr.darts >= 3) {
-    cr.turn = (p + 1) % cr.names.length;
-    cr.darts = 0;
-    msg += ` · À ${cr.names[cr.turn]}`;
-  }
   cr.info = msg;
   setMult(1);
   toast(msg);
@@ -130,7 +125,7 @@ function crDart(v) {
 }
 
 function crPass() {
-  if (!cr || cr.winner !== null || cr.darts === 0) return;
+  if (!cr || cr.winner !== null) return;
   history.push(JSON.stringify(cr));
   cr.turn = (cr.turn + 1) % cr.names.length;
   cr.darts = 0;
@@ -155,7 +150,7 @@ function renderCricket() {
   const p = cr.turn;
   $('ctable').style.setProperty('--n', n);
   $('cturn').textContent = over ? 'Partie terminée' : `Tour : ${cr.names[p]}`;
-  $('ccount').textContent = `Fléchettes : ${cr.darts}/3`;
+  $('ccount').textContent = `Fléchettes ce tour : ${cr.darts}`;
 
   const head = '<div class="crow chead"><span></span>' + cr.names.map((nm, q) =>
     `<span class="cname${!over && q === p ? ' cur' : ''}" style="--pc:${colorOf(q)}">${esc(nm)}</span>`).join('') + '</div>';
@@ -184,7 +179,7 @@ function renderCricket() {
   $('ckeys').querySelectorAll('.key').forEach(b => {
     b.disabled = over || (b.dataset.v === 'BULL' && mult === 3);
   });
-  $('cpass').disabled = over || cr.darts === 0;
+  $('cpass').disabled = over;
   $('cundo').disabled = !history.length;
 
   $('cend').hidden = !over;
