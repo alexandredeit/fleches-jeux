@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cricket fléchettes</title>
+<meta name="description" content="Cricket à fléchettes : standard, cut-throat ou caché, en touchant les chiffres.">
+<meta name="theme-color" content="#0E1512">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<noscript><p class="noscript">Cette page a besoin de JavaScript pour fonctionner.</p></noscript>
+<main>
+  <header class="top">
+    <h1 class="brand">Cricket <span>fléchettes</span></h1>
+    <div class="bar"><a class="btn ghost" href="../">Jeux</a><div class="bar"><a class="btn ghost" href="../">Jeux</a><button class="btn ghost" id="menu" hidden>Réglages</button></div></div>
+  </header>
+
+  <section id="csetup" class="card" data-screen="csetup" hidden>
+    <span class="flabel">Mode</span>
+    <div class="modes" id="cmodes">
+      <button data-cm="standard" aria-pressed="true">Cricket</button>
+      <button data-cm="cutthroat" aria-pressed="false">Cut-throat</button>
+      <button data-cm="hidden" aria-pressed="false">Caché</button>
+    </div>
+    <p class="hint" id="cmodeText"></p>
+    <div class="field">
+      <span class="flabel">Joueurs</span>
+      <div class="plist" id="cplist"></div>
+      <button class="btn ghost" id="caddP">+ Ajouter un joueur</button>
+    </div>
+    <button class="btn" id="cresume" hidden>Reprendre la partie en cours</button>
+    <button class="btn primary" id="cstart">Commencer</button>
+  </section>
+
+  <section id="cgame" data-screen="cgame" hidden>
+    <div class="status">
+      <div class="turn" id="cturn"></div>
+      <div class="count" id="ccount"></div>
+    </div>
+
+    <div class="ctable" id="ctable"></div>
+    <p class="note" id="cinfo" aria-live="polite"></p>
+
+    <div class="mult" id="cmult" role="group" aria-label="Type de fléchette">
+      <button data-m="1" aria-pressed="true">Simple</button>
+      <button data-m="2" aria-pressed="false">Double</button>
+      <button data-m="3" aria-pressed="false">Triple</button>
+    </div>
+
+    <div class="keypad" id="ckeys"></div>
+
+    <div class="actions two">
+      <button class="btn" id="cundo">Annuler</button>
+      <button class="btn" id="cpass">Fin du tour</button>
+    </div>
+
+    <section class="card end" id="cend" hidden>
+      <h2 id="ctitle"></h2>
+      <p id="ctext"></p>
+      <div class="row2">
+        <button class="btn primary" id="cagain">Rejouer</button>
+        <button class="btn" id="cchange">Joueurs</button>
+      </div>
+    </section>
+  </section>
+
+  <div class="toast" id="toast" hidden></div>
+</main>
+<script>
+const KEY = 'cricket-v1';
+</script>
+<script src="../assets/common.js"></script>
+<script src="../js/cricket.js"></script>
+</body>
+</html>
