@@ -40,6 +40,7 @@ button:disabled{opacity:.4;cursor:default}
 .brand{margin:0;font-family:var(--display);font-weight:800;font-size:1.7rem;line-height:1;text-transform:uppercase;letter-spacing:.02em}
 .brand span{color:var(--gold)}
 .brand img.logo{display:block;width:min(240px,62vw);height:auto;margin-top:8px}
+.voice{margin:6px 0 0;font-size:.9rem;color:var(--muted);min-height:1.2em;overflow-wrap:anywhere}
 
 .btn{min-height:48px;padding:12px 14px;border-radius:12px;background:var(--panel-2);border:1px solid var(--line);font-weight:600;font-size:1rem;text-align:center;transition:transform .08s}
 .btn:active{transform:scale(.97)}

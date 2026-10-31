@@ -37,6 +37,15 @@
       <span><b>Double pour finir</b><small>Il faut terminer sur un double ou sur la bulle</small></span>
       <span class="sw" aria-hidden="true"></span>
     </button>
+    <button class="toggle" id="xvoiceBtn" aria-pressed="false">
+      <span><b>Commande vocale</b><small>Dis tes fléchettes au micro, sans toucher l'écran</small></span>
+      <span class="sw" aria-hidden="true"></span>
+    </button>
+    <button class="toggle" id="xspeakBtn" aria-pressed="true">
+      <span><b>Annoncer le score</b><small>L'application répond à voix haute</small></span>
+      <span class="sw" aria-hidden="true"></span>
+    </button>
+    <p class="hint" id="xvoiceHint"></p>
     <div class="field">
       <span class="flabel">Joueurs</span>
       <div class="plist" id="plist"></div>
@@ -61,6 +70,7 @@
     </div>
 
     <div class="info" id="xinfo" aria-live="polite"></div>
+    <p class="voice" id="xvoice" hidden></p>
 
     <div class="mult" id="xmult" role="group" aria-label="Type de fléchette">
       <button data-m="1" aria-pressed="true">Simple</button>
@@ -91,6 +101,7 @@
 const KEY = 'x01-v1';
 </script>
 <script src="../assets/common.js"></script>
+<script src="../js/voice.js"></script>
 <script src="../js/x01.js"></script>
 </body>
 </html>

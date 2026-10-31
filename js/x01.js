@@ -32,6 +32,7 @@ function startX() {
   setMult(1);
   show('xgame');
   refresh();
+  if (voiceOn()) startVoice();
 }
 
 function curPlayer() { return lv.players[lv.turn]; }
@@ -142,7 +143,9 @@ function renderX() {
     const w = lv.players[lv.winner];
     $('xtitle').textContent = `${w.name} gagne !`;
     $('xtext').textContent = `Terminé en ${w.darts} fléchette${w.darts > 1 ? 's' : ''}, départ ${lv.start}.`;
+    stopVoice();
   }
+  renderVoiceLine();
 }
 
 function refresh() {
@@ -159,12 +162,188 @@ function renderXsetup() {
   $('xchips').querySelectorAll('[data-v]').forEach(b =>
     b.setAttribute('aria-pressed', String(+b.dataset.v === xSetupStart)));
   $('xdouble').setAttribute('aria-pressed', String(xSetupDouble));
+  $('xvoiceBtn').setAttribute('aria-pressed', String(voiceOn()));
+  $('xspeakBtn').setAttribute('aria-pressed', String(!!(lcfg.voice && lcfg.voice.speak)));
+  $('xvoiceBtn').disabled = !SR;
+  $('xvoiceHint').textContent = !SR
+    ? 'Reconnaissance vocale indisponible dans ce navigateur. Sur iPhone : Safari ; sur Android : Chrome.'
+    : voiceOn()
+      ? 'Dis une fléchette par « triple 15 », « double 20 », « 5 », « bulle » (50), « bull » (25) ou « raté ». Tu peux en dire plusieurs d’un coup. « Joueur suivant » passe la main, « annule » retire le dernier coup.'
+      : '';
 }
 
 function showXsetup() {
+  stopVoice();
   renderXsetup();
   $('xresume').hidden = !inProgressX();
   show('lsetup');
+}
+
+/* ----- commande vocale ----- */
+
+// Reconnaissance du navigateur (Chrome sur Android, Safari sur iPhone récent, Chrome/Edge sur ordinateur)
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;            // reconnaissance en cours
+let listening = false;     // l'écoute doit continuer pendant la partie
+let restartTimer = 0;
+let muted = false;         // pendant que l'application parle, on ignore ce qui est entendu
+let muteTimer = 0;
+let wakeLock = null;       // garde l'écran allumé pendant l'écoute, si le navigateur le permet
+let voiceStatus = '';
+let lastHeard = '';
+
+function voiceOn() { return !!(lcfg.voice && lcfg.voice.on); }
+
+function renderVoiceLine() {
+  const el = $('xvoice');
+  const visible = voiceOn() && !!lv && lv.phase === 'turn';
+  el.hidden = !visible;
+  if (!visible) return;
+  el.textContent = `Micro : ${voiceStatus}` + (lastHeard ? ` · Entendu : « ${lastHeard} »` : '');
+}
+
+function setVoiceStatus(t) { voiceStatus = t; renderVoiceLine(); }
+
+async function keepAwake() {
+  try { if ('wakeLock' in navigator && !wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+}
+
+function releaseAwake() {
+  try { if (wakeLock) wakeLock.release(); } catch (e) {}
+  wakeLock = null;
+}
+
+function startVoice() {
+  if (!SR || !voiceOn() || !lv || lv.phase !== 'turn') return;
+  listening = true;
+  clearTimeout(restartTimer);
+  if (rec) return;
+  keepAwake();
+  rec = new SR();
+  rec.lang = 'fr-FR';
+  rec.continuous = true;
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+  let retry = 300;
+  rec.onresult = e => {
+    if (muted) return;
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) handleSpeech(e.results[i][0].transcript);
+    }
+  };
+  rec.onerror = e => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      listening = false;
+      lcfg.voice.on = false;
+      save();
+      setVoiceStatus('micro refusé, autorise-le dans le navigateur');
+      renderXsetup();
+    } else if (e.error === 'network') {
+      retry = 3000;
+      setVoiceStatus('pas de connexion internet, la reconnaissance ne marche pas hors ligne');
+    } else if (e.error === 'audio-capture') {
+      listening = false;
+      setVoiceStatus('aucun micro détecté');
+    }
+  };
+  rec.onend = () => {
+    rec = null;
+    if (listening && lv && lv.phase === 'turn') restartTimer = setTimeout(startVoice, retry);
+  };
+  try {
+    rec.start();
+    setVoiceStatus(muted ? 'il parle…' : 'à l’écoute');
+  } catch (e) {
+    rec = null;
+  }
+}
+
+function stopVoice() {
+  listening = false;
+  clearTimeout(restartTimer);
+  const r = rec;
+  rec = null;
+  if (r) {
+    r.onend = null;
+    try { r.abort ? r.abort() : r.stop(); } catch (e) {}
+  }
+  releaseAwake();
+}
+
+// L'application annonce à voix haute ; on coupe l'écoute pendant ce temps pour ne pas s'entendre elle-même
+function speak(text) {
+  if (!lcfg.voice || !lcfg.voice.speak || !('speechSynthesis' in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR';
+    u.rate = 1.05;
+    muted = true;
+    clearTimeout(muteTimer);
+    const done = () => { muteTimer = setTimeout(() => { muted = false; }, 400); };
+    u.onend = done;
+    u.onerror = done;
+    muteTimer = setTimeout(() => { muted = false; }, 6000);
+    speechSynthesis.speak(u);
+  } catch (e) {
+    muted = false;
+  }
+}
+
+function spokenLabel(l) {
+  if (l === 'Bull' || l === 'Bulle') return l;
+  if (l === 'Raté') return 'raté';
+  if (l[0] === 'T') return `triple ${l.slice(1)}`;
+  if (l[0] === 'D') return `double ${l.slice(1)}`;
+  return l;
+}
+
+// « joueur suivant » : passe la main, même sans fléchette lancée
+function voiceNext() {
+  if (lv.cur.length > 0) { passX(); return; }
+  snap();
+  lv.turn = (lv.turn + 1) % lv.players.length;
+  setMult(1);
+  lv.info = `${curPlayer().name}, à toi.`;
+  refresh();
+}
+
+function handleSpeech(text) {
+  lastHeard = String(text).trim();
+  if (!lv || lv.phase !== 'turn') { renderVoiceLine(); return; }
+  const actions = parseVoice(text);
+  if (!actions.length) { lastHeard += ' (non compris)'; renderVoiceLine(); return; }
+
+  const said = [];
+  let passed = false;
+  let undone = false;
+  for (const a of actions) {
+    if (lv.phase !== 'turn') break;
+    if (a.t === 'dart') {
+      addX(a.p, a.label, a.dbl);
+      said.push(spokenLabel(a.label));
+    } else if (a.t === 'next') {
+      voiceNext();
+      passed = true;
+    } else if (a.t === 'undo') {
+      undo();
+      undone = true;
+      break;
+    }
+  }
+  renderVoiceLine();
+
+  if (undone) { speak('Annulé.'); return; }
+  if (lv.phase === 'over') {
+    const w = lv.players[lv.winner];
+    stopVoice();
+    speak(`${w.name} gagne !`);
+    return;
+  }
+  if (said.length || passed) {
+    const tail = lv.cur.length === 0 ? lv.info : `Total ${curSum()}`;
+    speak([said.join(', '), tail].filter(Boolean).join('. '));
+  }
 }
 
 /* ----- événements ----- */
@@ -196,7 +375,7 @@ $('xdouble').addEventListener('click', () => {
   renderXsetup();
 });
 $('xstartBtn').addEventListener('click', startX);
-$('xresume').addEventListener('click', () => { show('xgame'); renderX(); });
+$('xresume').addEventListener('click', () => { show('xgame'); renderX(); if (voiceOn()) startVoice(); });
 
 $('xkeys').addEventListener('click', e => {
   const b = e.target.closest('.key');
@@ -216,9 +395,28 @@ $('xundo').addEventListener('click', undo);
 $('xpass').addEventListener('click', passX);
 $('xagain').addEventListener('click', startX);
 $('xchange').addEventListener('click', showXsetup);
+$('xvoiceBtn').addEventListener('click', () => {
+  if (!SR) return;
+  lcfg.voice.on = !voiceOn();
+  save();
+  renderXsetup();
+});
+$('xspeakBtn').addEventListener('click', () => {
+  lcfg.voice.speak = !lcfg.voice.speak;
+  save();
+  renderXsetup();
+});
+// Au retour dans l'appli, on relance l'écoute si elle était active
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && listening) {
+    keepAwake();
+    if (!rec) startVoice();
+  }
+});
 
 /* ----- démarrage ----- */
 
 restoreSaved();
+lcfg.voice = Object.assign({ on: false, speak: true }, lcfg.voice);
 if (inProgressX()) { show('xgame'); renderX(); }
 else showXsetup();
