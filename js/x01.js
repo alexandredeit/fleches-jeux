@@ -32,7 +32,7 @@ function startX() {
   setMult(1);
   show('xgame');
   refresh();
-  if (voiceOn()) startVoice();
+  if (voiceOn()) { primeSpeech(); startVoice(); }
 }
 
 function curPlayer() { return lv.players[lv.turn]; }
@@ -165,11 +165,15 @@ function renderXsetup() {
   $('xvoiceBtn').setAttribute('aria-pressed', String(voiceOn()));
   $('xspeakBtn').setAttribute('aria-pressed', String(!!(lcfg.voice && lcfg.voice.speak)));
   $('xvoiceBtn').disabled = !SR;
-  $('xvoiceHint').textContent = !SR
-    ? 'Reconnaissance vocale indisponible dans ce navigateur. Sur iPhone : Safari ; sur Android : Chrome.'
-    : voiceOn()
-      ? 'Dis une fléchette par « triple 15 », « double 20 », « 5 », « bulle » (50), « bull » (25) ou « raté ». Tu peux en dire plusieurs d’un coup. « Joueur suivant » passe la main, « annule » retire le dernier coup.'
-      : '';
+  renderVoiceHint();
+}
+
+function renderVoiceHint() {
+  const lines = [];
+  if (!SR) lines.push('Reconnaissance vocale indisponible dans ce navigateur. Sur iPhone : Safari ; sur Android : Chrome.');
+  else if (voiceOn()) lines.push('Dis une fléchette par « triple 15 », « double 20 », « 5 », « bulle » (50), « bull » (25) ou « raté ». Plusieurs d’un coup, c’est possible. Le total du tour se dit « total 85 » ou « quatre vingt cinq ». « Joueur suivant » passe la main, « annule » retire le dernier coup.');
+  if (lcfg.voice && lcfg.voice.speak && frVoiceMissing) lines.push('Aucune voix française sur cet appareil : l’annonce utilisera la voix par défaut.');
+  $('xvoiceHint').textContent = lines.join(' ');
 }
 
 function showXsetup() {
@@ -270,23 +274,72 @@ function stopVoice() {
   releaseAwake();
 }
 
-// L'application annonce à voix haute ; on coupe l'écoute pendant ce temps pour ne pas s'entendre elle-même
-function speak(text) {
-  if (!lcfg.voice || !lcfg.voice.speak || !('speechSynthesis' in window)) return;
+// Voix française de l'appareil (si elle existe)
+let frVoice = null;
+let frVoiceMissing = false;
+
+function pickFrVoice() {
   try {
+    const vs = speechSynthesis.getVoices();
+    frVoice = vs.find(v => /^fr/i.test(v.lang)) || null;
+    frVoiceMissing = vs.length > 0 && !frVoice;
+  } catch (e) {
+    frVoice = null;
+  }
+  renderVoiceHint();
+}
+
+// Certains navigateurs (iPhone surtout) n'acceptent de parler qu'après un appui : on « réveille » la voix au moment de Commencer
+function primeSpeech() {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+// L'application annonce à voix haute. Le micro coupe souvent la voix (surtout sur Android) :
+// on arrête donc l'écoute le temps de parler, puis on la relance.
+function speak(text) {
+  if (!lcfg.voice || !lcfg.voice.speak) return;
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+    setVoiceStatus('annonce vocale indisponible sur ce navigateur');
+    return;
+  }
+  const resume = () => {
+    clearTimeout(muteTimer);
+    muteTimer = setTimeout(() => {
+      muted = false;
+      if (listening) startVoice();
+    }, 400);
+  };
+  try {
+    if (rec) {
+      const r = rec;
+      rec = null;
+      r.onend = null;
+      try { r.abort(); } catch (e) {}
+    }
+    muted = true;
+    setVoiceStatus('il parle…');
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'fr-FR';
     u.rate = 1.05;
-    muted = true;
+    if (frVoice) u.voice = frVoice;
+    u.onend = resume;
+    u.onerror = e => {
+      if (e.error !== 'interrupted' && e.error !== 'canceled') setVoiceStatus('annonce vocale bloquée par l’appareil');
+      resume();
+    };
     clearTimeout(muteTimer);
-    const done = () => { muteTimer = setTimeout(() => { muted = false; }, 400); };
-    u.onend = done;
-    u.onerror = done;
-    muteTimer = setTimeout(() => { muted = false; }, 6000);
+    muteTimer = setTimeout(() => { muted = false; if (listening) startVoice(); }, 6000);
     speechSynthesis.speak(u);
   } catch (e) {
     muted = false;
+    setVoiceStatus('annonce vocale impossible');
+    if (listening) startVoice();
   }
 }
 
@@ -308,6 +361,32 @@ function voiceNext() {
   refresh();
 }
 
+// « total 85 » : le score des 3 fléchettes du tour, dit d'un coup (à dire avant les fléchettes du tour)
+function voiceTotal(n) {
+  snap();
+  const pl = curPlayer();
+  const rem = pl.score - n;
+  pl.darts += 3;
+  pl.last = n;
+  if (rem < 0 || (lv.doubleOut && rem === 1)) {
+    pl.last = 'Bust';
+    lv.info = `${pl.name} bust : ce tour ne compte pas.`;
+    lv.turn = (lv.turn + 1) % lv.players.length;
+  } else if (rem === 0) {
+    // Le total ne dit pas si la dernière fléchette était un double : on accepte le zéro
+    pl.score = 0;
+    lv.winner = lv.turn;
+    lv.phase = 'over';
+    lv.info = `${pl.name} termine à zéro.`;
+  } else {
+    pl.score = rem;
+    lv.info = `${pl.name} fait ${n}, il reste ${rem}.`;
+    lv.turn = (lv.turn + 1) % lv.players.length;
+  }
+  setMult(1);
+  refresh();
+}
+
 function handleSpeech(text) {
   lastHeard = String(text).trim();
   if (!lv || lv.phase !== 'turn') { renderVoiceLine(); return; }
@@ -325,6 +404,14 @@ function handleSpeech(text) {
     } else if (a.t === 'next') {
       voiceNext();
       passed = true;
+    } else if (a.t === 'total') {
+      if (lv.cur.length > 0) {
+        lastHeard += ' (le total se dit avant les fléchettes du tour)';
+      } else {
+        voiceTotal(a.p);
+        said.push(`total ${a.p}`);
+        passed = true;
+      }
     } else if (a.t === 'undo') {
       undo();
       undone = true;
@@ -375,7 +462,7 @@ $('xdouble').addEventListener('click', () => {
   renderXsetup();
 });
 $('xstartBtn').addEventListener('click', startX);
-$('xresume').addEventListener('click', () => { show('xgame'); renderX(); if (voiceOn()) startVoice(); });
+$('xresume').addEventListener('click', () => { show('xgame'); renderX(); if (voiceOn()) { primeSpeech(); startVoice(); } });
 
 $('xkeys').addEventListener('click', e => {
   const b = e.target.closest('.key');
@@ -418,5 +505,9 @@ document.addEventListener('visibilitychange', () => {
 
 restoreSaved();
 lcfg.voice = Object.assign({ on: false, speak: true }, lcfg.voice);
+if ('speechSynthesis' in window) {
+  pickFrVoice();
+  speechSynthesis.onvoiceschanged = pickFrVoice;
+}
 if (inProgressX()) { show('xgame'); renderX(); }
 else showXsetup();
