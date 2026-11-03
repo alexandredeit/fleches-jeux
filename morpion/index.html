@@ -23,13 +23,17 @@
   </header>
 
   <section id="msetup" class="card" data-screen="msetup" hidden>
-    <div class="field ra">
-      <label for="nameA">Équipe rouge</label>
-      <input id="nameA" maxlength="18" value="Rouge" autocomplete="off">
-    </div>
-    <div class="field rb">
-      <label for="nameB">Équipe verte</label>
-      <input id="nameB" maxlength="18" value="Verte" autocomplete="off">
+    <div id="mteams">
+      <div class="field ra drag" data-row="0">
+        <label for="nameA">Commence · rouge</label>
+        <input id="nameA" maxlength="18" value="Rouge" autocomplete="off">
+        <span class="grip" title="Glisser pour changer l’ordre" aria-label="Déplacer ce nom">≡</span>
+      </div>
+      <div class="field rb drag" data-row="1">
+        <label for="nameB">Deuxième · verte</label>
+        <input id="nameB" maxlength="18" value="Verte" autocomplete="off">
+        <span class="grip" title="Glisser pour changer l’ordre" aria-label="Déplacer ce nom">≡</span>
+      </div>
     </div>
     <button class="toggle" id="bullBtn" aria-pressed="false">
       <span><b>Inclure la bulle</b><small>Une case devient BULLE, une seule fois</small></span>

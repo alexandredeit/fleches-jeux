@@ -80,3 +80,51 @@ function restoreSaved() {
   lv = s.lv || null;
   history = s.history || [];
 }
+
+/* Glisser-déposer pour réordonner une liste, au doigt ou à la souris.
+   Chaque ligne porte data-row="i" et une poignée .grip. onMove(de, vers) est appelé à la fin du glissement. */
+function enableReorder(container, onMove) {
+  container.addEventListener('pointerdown', e => {
+    const grip = e.target.closest('.grip');
+    if (!grip || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const rows = Array.from(container.querySelectorAll('[data-row]'));
+    const row = grip.closest('[data-row]');
+    if (!row || rows.length < 2) return;
+    e.preventDefault();
+    const from = rows.indexOf(row);
+    const tops = rows.map(r => r.offsetTop);
+    const hs = rows.map(r => r.offsetHeight);
+    const step = tops[1] - tops[0];          // hauteur d'une ligne + l'espace entre deux lignes
+    const startY = e.clientY;
+    let to = from;
+    grip.setPointerCapture(e.pointerId);
+    row.classList.add('dragging');
+
+    const move = ev => {
+      const dy = ev.clientY - startY;
+      row.style.transform = `translateY(${dy}px)`;
+      const centre = tops[from] + hs[from] / 2 + dy;
+      to = rows.filter((r, i) => i !== from && tops[i] + hs[i] / 2 < centre).length;
+      rows.forEach((r, i) => {
+        if (i === from) return;
+        let shift = 0;
+        if (from < to && i > from && i <= to) shift = -step;
+        else if (from > to && i >= to && i < from) shift = step;
+        r.style.transform = shift ? `translateY(${shift}px)` : '';
+      });
+    };
+    const end = commit => {
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', up);
+      grip.removeEventListener('pointercancel', cancel);
+      rows.forEach(r => { r.style.transform = ''; });
+      row.classList.remove('dragging');
+      if (commit && to !== from) onMove(from, to);
+    };
+    const up = () => end(true);
+    const cancel = () => end(false);
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', up);
+    grip.addEventListener('pointercancel', cancel);
+  });
+}

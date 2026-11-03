@@ -160,6 +160,12 @@ function showMsetup() {
 /* ----- événements ----- */
 
 $('menu').addEventListener('click', showMsetup);
+// Glisser un nom : l'équipe du haut commence, les couleurs restent à leur place
+enableReorder($('mteams'), () => {
+  const a = $('nameA').value;
+  $('nameA').value = $('nameB').value;
+  $('nameB').value = a;
+});
 $('bullBtn').addEventListener('click', () => setBull(!cfg.bull));
 $('start').addEventListener('click', () => {
   const a = $('nameA').value.trim() || 'Rouge';

@@ -155,7 +155,7 @@ function refresh() {
 
 function renderXsetup() {
   $('plist').innerHTML = lcfg.names.map((n, i) =>
-    `<div class="prowin"><input data-i="${i}" maxlength="18" value="${esc(n)}" aria-label="Nom du joueur ${i + 1}" autocomplete="off">`
+    `<div class="prowin drag" data-row="${i}"><span class="grip" title="Glisser pour changer l’ordre" aria-label="Déplacer ce joueur">≡</span><input data-i="${i}" maxlength="18" value="${esc(n)}" aria-label="Nom du joueur ${i + 1}" autocomplete="off">`
     + (lcfg.names.length > 2 ? `<button class="btn ghost rm" data-rm="${i}" aria-label="Retirer ce joueur">×</button>` : '')
     + `</div>`).join('');
   $('addP').disabled = lcfg.names.length >= 8;
@@ -439,6 +439,11 @@ $('menu').addEventListener('click', showXsetup);
 $('plist').addEventListener('input', e => {
   const i = +e.target.dataset.i;
   if (!Number.isNaN(i)) lcfg.names[i] = e.target.value;
+});
+enableReorder($('plist'), (from, to) => {
+  const [moved] = lcfg.names.splice(from, 1);
+  lcfg.names.splice(to, 0, moved);
+  renderXsetup();
 });
 $('plist').addEventListener('click', e => {
   const b = e.target.closest('[data-rm]');
