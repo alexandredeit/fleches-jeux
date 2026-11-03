@@ -120,8 +120,8 @@ button:disabled{opacity:.4;cursor:default}
 .prow.out{opacity:.4}
 .pname{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .hearts{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
-.heart{display:block;width:12px;height:12px;border-radius:50%;border:2px solid var(--a)}
-.heart.on{background:var(--a)}
+.heart{display:block;width:22px;height:21px;background:url("heart.png") center/contain no-repeat;filter:grayscale(1);opacity:.22}
+.heart.on{filter:none;opacity:1}
 .ptot{font-family:var(--display);font-weight:800;font-size:1.5rem;text-align:right;line-height:1}
 .tag2{font-family:var(--body);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 

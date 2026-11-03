@@ -3,8 +3,8 @@
 Cinq jeux de fléchettes dans une page web, pensés pour le téléphone :
 
 - **Morpion** : grille 3×3 de chiffres de 1 à 20 (avec ou sans la bulle). Quatre touches sur une case la gagnent, trois cases alignées font gagner la partie.
-- **Battle royale** : à chaque manche, le total le plus bas perd une vie. Les ex-aequo relancent 3 fléchettes chacun pour se départager.
-- **Classique** : chacun doit faire plus que le joueur qui vient de jouer, sinon il perd une vie.
+- **Jeu des vies - BR** (battle royale) : à chaque manche, le total le plus bas perd une vie. Les ex-aequo relancent 3 fléchettes chacun pour se départager.
+- **Jeu des vies - classique** : chacun doit faire plus que le joueur qui vient de jouer, sinon il perd une vie.
 - **X01** : partir de 301, 501 ou 701 et finir à zéro, avec ou sans « double pour finir ».
 - **Cricket** : trois modes. Le cricket standard ferme 15 à 20 et la bulle, le cut-throat envoie les points aux adversaires, et le cricket caché utilise sept cases tirées au hasard parmi 1 à 20 et la bulle.
 
@@ -24,8 +24,8 @@ assets/common.js            état, sauvegarde, navigation, messages
 assets/favicon.svg          icône
 assets/apple-touch-icon.png icône de l'écran d'accueil iPhone
 morpion/index.html          page du morpion
-battle-royale/index.html    page du battle royale
-classique/index.html        page du classique
+battle-royale/index.html    page du jeu des vies - BR
+classique/index.html        page du jeu des vies - classique
 x01/index.html              page du X01
 cricket/index.html          page du cricket
 js/morpion.js               règles du morpion
