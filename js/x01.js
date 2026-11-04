@@ -25,6 +25,7 @@ function startX() {
     cur: [],
     winner: null,
     info: '',
+    entry: '',
     players: lcfg.names.map(name => ({ name, score: xSetupStart, darts: 0, last: null }))
   };
   lv.info = `${lv.players[0].name} commence.`;
@@ -135,7 +136,15 @@ function renderX() {
   const playable = !over;
   $('xmult').querySelectorAll('button').forEach(b => { b.disabled = !playable; });
   document.querySelectorAll('#xkeys .key').forEach(b => { b.disabled = !playable || lv.cur.length >= 3; });
-  $('xpass').disabled = !playable || lv.cur.length === 0;
+  // Saisie du total : pavé numérique à la place des fléchettes, « Valider le total » à la place de « Fin du tour »
+  const tm = !!lcfg.totalMode;
+  $('xkeys').hidden = tm;
+  $('xmult').hidden = tm;
+  $('xslots').hidden = tm;
+  $('xpad').hidden = !(tm && playable);
+  $('xentry').textContent = lv.entry || '';
+  $('xpass').textContent = tm ? 'Valider le total' : 'Fin du tour';
+  $('xpass').disabled = !playable || (tm ? !lv.entry : lv.cur.length === 0);
   $('xundo').disabled = !history.length;
 
   $('xend').hidden = !over;
@@ -162,6 +171,7 @@ function renderXsetup() {
   $('xchips').querySelectorAll('[data-v]').forEach(b =>
     b.setAttribute('aria-pressed', String(+b.dataset.v === xSetupStart)));
   $('xdouble').setAttribute('aria-pressed', String(xSetupDouble));
+  $('xentryBtn').setAttribute('aria-pressed', String(!!lcfg.totalMode));
   $('xvoiceBtn').setAttribute('aria-pressed', String(voiceOn()));
   $('xspeakBtn').setAttribute('aria-pressed', String(!!(lcfg.voice && lcfg.voice.speak)));
   $('xvoiceBtn').disabled = !SR;
@@ -433,6 +443,15 @@ function handleSpeech(text) {
   }
 }
 
+// Total du tour saisi au pavé (mode « total »)
+function submitXTotal() {
+  if (!lv || lv.phase !== 'turn' || !lv.entry) return;
+  if (lv.cur.length) { toast('Termine le tour à la fléchette ou efface les fléchettes'); return; }
+  const n = Number(lv.entry);
+  lv.entry = '';
+  voiceTotal(n);
+}
+
 /* ----- événements ----- */
 
 $('menu').addEventListener('click', showXsetup);
@@ -466,6 +485,17 @@ $('xdouble').addEventListener('click', () => {
   xSetupDouble = !xSetupDouble;
   renderXsetup();
 });
+$('xentryBtn').addEventListener('click', () => {
+  lcfg.totalMode = !lcfg.totalMode;
+  save();
+  renderXsetup();
+});
+$('xnum').addEventListener('click', e => {
+  const b = e.target.closest('[data-d],[data-del]');
+  if (!b || !lv) return;
+  lv.entry = b.dataset.del !== undefined ? lv.entry.slice(0, -1) : nextEntry(lv.entry || '', b.dataset.d);
+  refresh();
+});
 $('xstartBtn').addEventListener('click', startX);
 $('xresume').addEventListener('click', () => { show('xgame'); renderX(); if (voiceOn()) { primeSpeech(); startVoice(); } });
 
@@ -484,7 +514,7 @@ $('xkeys').addEventListener('click', e => {
   }
 });
 $('xundo').addEventListener('click', undo);
-$('xpass').addEventListener('click', passX);
+$('xpass').addEventListener('click', () => { if (lcfg.totalMode) submitXTotal(); else passX(); });
 $('xagain').addEventListener('click', startX);
 $('xchange').addEventListener('click', showXsetup);
 $('xvoiceBtn').addEventListener('click', () => {
@@ -510,6 +540,8 @@ document.addEventListener('visibilitychange', () => {
 
 restoreSaved();
 lcfg.voice = Object.assign({ on: false, speak: true }, lcfg.voice);
+lcfg.totalMode = !!lcfg.totalMode;
+fillNumpad($('xnum'));
 if ('speechSynthesis' in window) {
   pickFrVoice();
   speechSynthesis.onvoiceschanged = pickFrVoice;

@@ -39,6 +39,10 @@
       </div>
       <p class="hint" id="livesHint"></p>
     </div>
+    <button class="toggle" id="entryBtn" aria-pressed="false">
+      <span><b>Saisir le total du tour</b><small>Un seul nombre pour les 3 fléchettes, au lieu de chacune</small></span>
+      <span class="sw" aria-hidden="true"></span>
+    </button>
     <button class="btn" id="lresume" hidden>Reprendre la partie en cours</button>
     <button class="btn primary" id="lstart">Commencer</button>
   </section>
@@ -58,6 +62,7 @@
     </div>
 
     <div class="info" id="linfo" aria-live="polite"></div>
+    <div id="lpad" hidden><div class="entry" id="lentry"></div><div class="numpad" id="lnum"></div></div>
 
     <div class="mult" id="lmult" role="group" aria-label="Type de fléchette">
       <button data-m="1" aria-pressed="true">Simple</button>

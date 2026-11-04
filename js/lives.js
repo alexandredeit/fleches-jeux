@@ -66,7 +66,7 @@ function startLives() {
     starter: order[0],
     round: 1,
     seq: [], pool: [], k: 0, cur: [], totals: {}, prev: null,
-    phase: 'turn', info: '', stages: [], tieLevel: 0, winner: null
+    phase: 'turn', info: '', stages: [], tieLevel: 0, winner: null, entry: ''
   };
   beginRound();
   lv.info = 'Ordre tiré au sort : ' + order.map(i => lv.players[i].name).join(', ') + '.';
@@ -97,11 +97,26 @@ function addDart(p, label) {
 function validateTurn() {
   if (!lv || lv.phase !== 'turn' || lv.cur.length < 3) return;
   snap();
+  const total = lv.cur.reduce((s, d) => s + d.p, 0);
+  lv.cur = [];
+  applyTurn(total);
+}
+
+// Total du tour saisi au pavé (mode « total »), 0 à 180
+function submitLivesTotal() {
+  if (!lv || lv.phase !== 'turn' || !lv.entry) return;
+  if (lv.cur.length) { toast('Termine le tour à la fléchette ou efface les fléchettes'); return; }
+  const total = Number(lv.entry);
+  lv.entry = '';
+  snap();
+  applyTurn(total);
+}
+
+// Applique le total d'un tour au joueur en jeu, puis la règle du mode de jeu
+function applyTurn(total) {
   const idx = lv.seq[lv.k];
   const p = lv.players[idx];
-  const total = lv.cur.reduce((s, d) => s + d.p, 0);
   lv.totals[idx] = total;
-  lv.cur = [];
 
   if (GAME_MODE === 'classic') {
     if (lv.prev === null) {
@@ -213,7 +228,16 @@ function renderLives() {
 
   $('lmult').querySelectorAll('button').forEach(b => { b.disabled = !playable; });
   document.querySelectorAll('#keys .key').forEach(b => { b.disabled = !playable || cur.length >= 3; });
-  $('lvalid').disabled = !(playable && cur.length === 3);
+  // Saisie du total : pavé numérique à la place des fléchettes
+  const tm = !!lcfg.totalMode;
+  $('lmult').hidden = tm;
+  $('keys').hidden = tm;
+  $('lslots').hidden = tm;
+  $('lpad').hidden = !(tm && playable);
+  $('lentry').textContent = lv.entry || '';
+  $('lsum').textContent = tm ? `Total saisi : ${lv.entry || 0}` : `Total : ${cur.reduce((s, d) => s + d.p, 0)}`;
+  $('lvalid').textContent = tm ? 'Valider le total' : 'Valider';
+  $('lvalid').disabled = tm ? !(playable && lv.entry) : !(playable && cur.length === 3);
   $('lundo').disabled = !history.length;
 
   $('lend').hidden = !(over || sum);
@@ -247,6 +271,7 @@ function renderLsetup() {
     + `</div>`).join('');
   $('addP').disabled = lcfg.names.length >= 8;
   $('livesOut').textContent = lcfg.lives;
+  $('entryBtn').setAttribute('aria-pressed', String(!!lcfg.totalMode));
   const n = lcfg.names.length;
   const s = suggestLives(n);
   $('livesHint').textContent = `Conseillé : ${s} vie${s > 1 ? 's' : ''} pour ${n} joueurs.`;
@@ -290,6 +315,17 @@ $('livesInc').addEventListener('click', () => {
   lcfg.lives = Math.min(10, lcfg.lives + 1);
   $('livesOut').textContent = lcfg.lives;
 });
+$('entryBtn').addEventListener('click', () => {
+  lcfg.totalMode = !lcfg.totalMode;
+  save();
+  renderLsetup();
+});
+$('lnum').addEventListener('click', e => {
+  const b = e.target.closest('[data-d],[data-del]');
+  if (!b || !lv) return;
+  lv.entry = b.dataset.del !== undefined ? lv.entry.slice(0, -1) : nextEntry(lv.entry || '', b.dataset.d);
+  refresh();
+});
 $('lstart').addEventListener('click', startLives);
 $('lresume').addEventListener('click', () => { show('lives'); renderLives(); });
 
@@ -305,7 +341,7 @@ $('keys').addEventListener('click', e => {
     addDart(v, v === 0 ? 'Raté' : v === 25 ? 'Bull' : 'Bulle');
   }
 });
-$('lvalid').addEventListener('click', validateTurn);
+$('lvalid').addEventListener('click', () => { if (lcfg.totalMode) submitLivesTotal(); else validateTurn(); });
 $('lundo').addEventListener('click', undo);
 $('lnext').addEventListener('click', () => {
   if (!lv || lv.phase !== 'summary') return;
@@ -319,5 +355,7 @@ $('lchange').addEventListener('click', showLsetup);
 /* ----- démarrage ----- */
 
 restoreSaved();
+lcfg.totalMode = !!lcfg.totalMode;
+fillNumpad($('lnum'));
 if (inProgressLives()) { show('lives'); renderLives(); }
 else showLsetup();

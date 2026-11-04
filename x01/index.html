@@ -46,6 +46,10 @@
       <span class="sw" aria-hidden="true"></span>
     </button>
     <p class="hint" id="xvoiceHint"></p>
+    <button class="toggle" id="xentryBtn" aria-pressed="false">
+      <span><b>Saisir le total du tour</b><small>Un seul nombre pour les 3 fléchettes, au lieu de chacune</small></span>
+      <span class="sw" aria-hidden="true"></span>
+    </button>
     <div class="field">
       <span class="flabel">Joueurs</span>
       <div class="plist" id="plist"></div>
@@ -70,6 +74,7 @@
     </div>
 
     <div class="info" id="xinfo" aria-live="polite"></div>
+    <div id="xpad" hidden><div class="entry" id="xentry"></div><div class="numpad" id="xnum"></div></div>
     <p class="voice" id="xvoice" hidden></p>
 
     <div class="mult" id="xmult" role="group" aria-label="Type de fléchette">

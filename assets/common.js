@@ -128,3 +128,15 @@ function enableReorder(container, onMove) {
     grip.addEventListener('pointercancel', cancel);
   });
 }
+
+/* Saisie du total d'un tour : pavé numérique de 0 à 180 */
+function fillNumpad(el) {
+  el.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button class="key" data-d="${n}">${n}</button>`).join('')
+    + '<button class="key" data-d="0">0</button><button class="key" data-del aria-label="Effacer">⌫</button>';
+}
+
+// Ajoute un chiffre à la saisie : 3 chiffres au plus, 180 au plus
+function nextEntry(entry, d) {
+  const next = (entry === '0' ? '' : entry) + d;
+  return next.length <= 3 && Number(next) <= 180 ? next : entry;
+}
