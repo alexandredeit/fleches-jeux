@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trois cents fléchettes</title>
+<meta name="description" content="Trois cents à fléchettes à deux : un sniper qui ne vise que le centre, un fantassin qui marque, deux tours.">
+<meta name="theme-color" content="#0E1512">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<noscript><p class="noscript">Cette page a besoin de JavaScript pour fonctionner.</p></noscript>
+
+<main>
+  <header class="top">
+    <h1 class="brand">Trois cents <img class="logo" src="../assets/logo.png" alt="Chicodart"></h1>
+    <div class="bar"><a class="btn ghost" href="../">Jeux</a><button class="btn ghost" id="menu" hidden>Réglages</button></div>
+  </header>
+
+  <section id="tsetup" class="card" data-screen="tsetup" hidden>
+    <h2 class="sect">Trois cents</h2>
+    <p>À deux, en deux tours. Un joueur est <b>sniper</b> : il ne vise que le centre (25 et 50) et lance 9 fléchettes d’affilée. Le nombre de fléchettes du fantassin dépend de la première fois où le sniper touche le centre : au premier coup, le fantassin n’en a aucune ; au deuxième, une seule ; et ainsi de suite. Le fantassin marque avec toutes ses fléchettes. Le tour s’arrête quand un joueur atteint 300 : il finit ses fléchettes, l’autre ne joue plus. Au tour suivant, les rôles sont inversés. Le total des deux tours départage les joueurs.</p>
+    <div id="tplayers-setup"></div>
+    <button class="btn" id="tresume" hidden>Reprendre la partie en cours</button>
+    <button class="btn primary" id="tstart">Commencer</button>
+  </section>
+
+  <section id="tgame" data-screen="tgame" hidden>
+    <div class="status"><div class="turn" id="tmode"></div></div>
+
+    <div class="players" id="tplayers"></div>
+
+    <div class="card">
+      <div class="status">
+        <div class="curname" id="tcur"></div>
+        <div id="trem"></div>
+      </div>
+      <p class="note" id="thint"></p>
+      <p class="note" id="tlog"></p>
+    </div>
+
+    <div class="info" id="tinfo" aria-live="polite"></div>
+
+    <div class="mult" id="tmult" role="group" aria-label="Type de fléchette">
+      <button data-m="1" aria-pressed="true">Simple</button>
+      <button data-m="2" aria-pressed="false">Double</button>
+      <button data-m="3" aria-pressed="false">Triple</button>
+    </div>
+
+    <div class="keypad" id="tkeys"></div>
+
+    <div class="actions two">
+      <button class="btn" id="tundo">Annuler</button>
+      <button class="btn" id="tpass">Fin du tour</button>
+    </div>
+
+    <section class="card end" id="tend" hidden>
+      <h2 id="ttitle"></h2>
+      <p id="ttext"></p>
+      <div class="row2">
+        <button class="btn primary" id="tnext" hidden>Tour suivant</button>
+        <button class="btn primary" id="tagain" hidden>Rejouer</button>
+        <button class="btn" id="tchange">Joueurs</button>
+      </div>
+    </section>
+  </section>
+
+  <div class="toast" id="toast" hidden></div>
+</main>
+<script>
+const KEY = 'trois-cents-v1';
+</script>
+<script src="../assets/common.js"></script>
+<script src="../js/trois.js"></script>
+</body>
+</html>
