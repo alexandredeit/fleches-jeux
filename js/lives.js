@@ -68,12 +68,39 @@ function startLives() {
     seq: [], pool: [], k: 0, cur: [], totals: {}, prev: null,
     phase: 'turn', info: '', stages: [], tieLevel: 0, winner: null, entry: ''
   };
-  beginRound();
-  lv.info = 'Ordre tiré au sort : ' + order.map(i => lv.players[i].name).join(', ') + '.';
+  if (GAME_MODE === 'classic') {
+    startClassic();
+    lv.info = `Premier lanceur tiré au sort : ${lv.players[lv.seq[0]].name}. Il doit dépasser 30 pour ne pas perdre de vie.`;
+  } else {
+    beginRound();
+    lv.info = 'Ordre tiré au sort : ' + order.map(i => lv.players[i].name).join(', ') + '.';
+  }
   history = [];
   setMult(1);
   show('lives');
   refresh();
+}
+
+// Classique : pas de manches. Le lanceur suivant est tiré au hasard parmi les joueurs en jeu, sauf celui qui vient de lancer
+function pickRandom(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function startClassic() {
+  lv.stages = [];
+  lv.tieLevel = 0;
+  lv.prev = null;
+  lv.pool = alivePlayers();
+  lv.seq = [pickRandom(alivePlayers())];
+  lv.k = 0;
+  lv.cur = [];
+  lv.totals = {};
+  lv.phase = 'turn';
+}
+
+function nextClassicPlayer(lastIdx) {
+  const others = alivePlayers().filter(i => i !== lastIdx);
+  return pickRandom(others.length ? others : alivePlayers());
 }
 
 function nextRound(prefix = '') {
@@ -119,8 +146,15 @@ function applyTurn(total) {
   lv.totals[idx] = total;
 
   if (GAME_MODE === 'classic') {
+    lv.round++;                       // compteur de lancers
     if (lv.prev === null) {
-      lv.info = `${p.name} fait ${total} : c'est la référence de la manche.`;
+      if (total <= 30) {
+        p.lives--;
+        lv.info = `${p.name} fait ${total} : il devait dépasser 30, il perd une vie.`
+          + (p.lives <= 0 ? ' Il est éliminé.' : '');
+      } else {
+        lv.info = `${p.name} fait ${total} : il fixe la référence.`;
+      }
     } else if (total <= lv.prev.total) {
       p.lives--;
       lv.info = `${p.name} fait ${total}, il ne bat pas ${lv.prev.name} (${lv.prev.total}) : il perd une vie.`
@@ -129,8 +163,10 @@ function applyTurn(total) {
       lv.info = `${p.name} fait ${total} et bat ${lv.prev.name} (${lv.prev.total}).`;
     }
     lv.prev = { idx, name: p.name, total };
-    lv.k++;
-    if (!checkLivesEnd() && lv.k >= lv.seq.length) nextRound(lv.info);
+    if (!checkLivesEnd()) {
+      lv.seq = [nextClassicPlayer(idx)];
+      lv.k = 0;
+    }
   } else {
     lv.k++;
     if (lv.k >= lv.seq.length) resolveStage();
@@ -185,7 +221,9 @@ function renderLives() {
   const idx = lv.seq[lv.k];
   const cur = lv.cur;
 
-  $('lmode').textContent = `${GAME_LABEL} · Manche ${lv.round}${lv.tieLevel ? ' · Départage ' + lv.tieLevel : ''}`;
+  $('lmode').textContent = GAME_MODE === 'classic'
+    ? `${GAME_LABEL} · Lancer ${lv.round}`
+    : `${GAME_LABEL} · Manche ${lv.round}${lv.tieLevel ? ' · Départage ' + lv.tieLevel : ''}`;
 
   $('lplayers').innerHTML = lv.players.map((p, i) => {
     const out = p.lives <= 0;
@@ -212,7 +250,7 @@ function renderLives() {
     } else {
       target = lv.prev
         ? `À battre : ${lv.prev.total} (${lv.prev.name})`
-        : 'Premier de la manche : il fixe la référence et ne perd pas de vie.';
+        : 'Premier lancer : il doit dépasser 30.';
     }
   }
   $('ltarget').textContent = target;
@@ -246,7 +284,9 @@ function renderLives() {
   $('lchange').hidden = !over;
   if (over) {
     $('ltitle').textContent = lv.winner === 'draw' ? 'Égalité' : `${lv.players[lv.winner].name} gagne !`;
-    $('ltext').textContent = `Partie terminée en ${lv.round} manche${lv.round > 1 ? 's' : ''}.`;
+    $('ltext').textContent = GAME_MODE === 'classic'
+      ? `Partie terminée après ${lv.round} lancer${lv.round > 1 ? 's' : ''}.`
+      : `Partie terminée en ${lv.round} manche${lv.round > 1 ? 's' : ''}.`;
   } else {
     $('ltitle').textContent = `Fin de la manche ${lv.round}`;
     $('ltext').textContent = '';
@@ -281,7 +321,7 @@ function showLsetup() {
   $('lsetupTitle').textContent = GAME_LABEL;
   $('lrule').textContent = GAME_MODE === 'battle'
     ? 'Chaque manche, chacun lance 3 fléchettes. Le total le plus bas perd une vie. En cas d’égalité sur ce total, les joueurs à égalité relancent 3 fléchettes chacun ; les autres sont qualifiés. Un joueur à zéro vie est éliminé. Le dernier en lice gagne.'
-    : 'Dans un ordre tiré au sort, chacun lance 3 fléchettes et doit faire plus que le joueur qui vient de jouer, sinon il perd une vie. Le premier de la manche fixe la référence et ne perd pas de vie. Le dernier en lice gagne.';
+    : 'Sans manches ni tours fixes : un joueur au hasard lance 3 fléchettes, puis un autre au hasard, et ainsi de suite. Chacun doit faire plus que le joueur qui vient de lancer, sinon il perd une vie. Le premier lancer doit dépasser 30. Le dernier en lice gagne.';
   renderLsetup();
   $('lresume').hidden = !inProgressLives();
   show('lsetup');
