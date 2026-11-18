@@ -158,6 +158,8 @@ button:disabled{opacity:.4;cursor:default}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#xchips{grid-template-columns:repeat(4,minmax(0,1fr))}
+.avg{display:block;font-size:.75rem;font-weight:600;color:var(--muted);margin-top:2px}
 .chips button{min-height:52px;border-radius:12px;background:var(--panel-2);border:1px solid var(--line);font-family:var(--display);font-weight:800;font-size:1.6rem;line-height:1}
 .chips button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#1A1405}
 .prow.win{border-color:var(--gold);background:var(--panel-2)}

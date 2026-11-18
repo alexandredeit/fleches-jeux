@@ -66,6 +66,7 @@ function endTurn(bust) {
   const pl = curPlayer();
   const sum = curSum();
   pl.darts += lv.cur.length;
+  pl.turns = (pl.turns || 0) + 1;
   if (bust) {
     pl.last = 'Bust';
     lv.info = `${pl.name} bust : ce tour ne compte pas.`;
@@ -81,6 +82,7 @@ function endTurn(bust) {
 function winTurn() {
   const pl = curPlayer();
   pl.darts += lv.cur.length;
+  pl.turns = (pl.turns || 0) + 1;
   pl.last = curSum();
   pl.score = 0;
   lv.cur = [];
@@ -99,6 +101,17 @@ function passX() {
   refresh();
 }
 
+// Moyenne par tour : points marqués (départ - score restant) divisés par le nombre de tours joués, busts compris
+function avgNum(p) {
+  const t = p.turns || 0;
+  return t ? ((lv.start - p.score) / t).toFixed(1).replace('.', ',') : '—';
+}
+
+function avgLabel(p) {
+  const t = p.turns || 0;
+  return `moy. ${avgNum(p)}${t ? ` · ${t} tour${t > 1 ? 's' : ''}` : ''}`;
+}
+
 function renderX() {
   if (!lv) return;
   const over = lv.phase === 'over';
@@ -111,7 +124,7 @@ function renderX() {
     const active = !over && i === lv.turn;
     const done = p.score === 0;
     return `<div class="prow x${active ? ' active' : ''}${done ? ' win' : ''}">`
-      + `<div class="pname">${esc(p.name)}</div>`
+      + `<div class="pname">${esc(p.name)}<small class="avg">${avgLabel(p)}</small></div>`
       + `<div class="xscore">${p.score}</div>`
       + `<div class="xlast">${p.last === null ? '—' : p.last}</div></div>`;
   }).join('');
@@ -151,7 +164,7 @@ function renderX() {
   if (over) {
     const w = lv.players[lv.winner];
     $('xtitle').textContent = `${w.name} gagne !`;
-    $('xtext').textContent = `Terminé en ${w.darts} fléchette${w.darts > 1 ? 's' : ''}, départ ${lv.start}.`;
+    $('xtext').textContent = `Terminé en ${w.darts} fléchette${w.darts > 1 ? 's' : ''}, départ ${lv.start}. Moyennes par tour : ${lv.players.map(p => `${p.name} ${avgNum(p)}`).join(' · ')}.`;
     stopVoice();
   }
   renderVoiceLine();
@@ -365,6 +378,7 @@ function spokenLabel(l) {
 function voiceNext() {
   if (lv.cur.length > 0) { passX(); return; }
   snap();
+  curPlayer().turns = (curPlayer().turns || 0) + 1;
   lv.turn = (lv.turn + 1) % lv.players.length;
   setMult(1);
   lv.info = `${curPlayer().name}, à toi.`;
@@ -377,6 +391,7 @@ function voiceTotal(n) {
   const pl = curPlayer();
   const rem = pl.score - n;
   pl.darts += 3;
+  pl.turns = (pl.turns || 0) + 1;
   pl.last = n;
   if (rem < 0 || (lv.doubleOut && rem === 1)) {
     pl.last = 'Bust';
